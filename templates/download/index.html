@@ -12,7 +12,6 @@
 <p style="color:red">{{ error }}</p>
 {% endif %}
 
-<!-- VIDEO MA'LUMOTINI OLIB KELISH -->
 <form method="POST">
     {% csrf_token %}
     <input type="text" name="given_url" placeholder="YouTube URL kiriting" required>
@@ -24,7 +23,6 @@
 <h3>{{ title }}</h3>
 <img src="{{ thumb }}" width="300" alt="thumbnail">
 
-<!-- VIDEO FILTR VA YUKLASH -->
 <form method="POST">
     {% csrf_token %}
     <input type="hidden" name="given_url" value="{{ url }}">

@@ -13,8 +13,6 @@ class Home(View):
 
     def post(self, request):
         url = request.POST.get('given_url')
-
-        # 1️⃣ Video ma'lumotlarini olish
         if request.POST.get('fetch-vid') == "1":
             try:
                 yt = YouTube(
@@ -54,7 +52,6 @@ class Home(View):
                     "error": f"Xatolik: {e}"
                 })
 
-        # 2️⃣ Video yuklab olish
         if request.POST.get('download-vid'):
             try:
                 index = int(request.POST.get('download-vid')) - 1
