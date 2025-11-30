@@ -1,89 +1,45 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="uz">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>YT Saver</title>
-    <style>
-        body {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            text-align: center;
-            height: 100vh;
-            margin: 0;
-            border: 3px solid green;
-            font-family: Arial, sans-serif;
-        }
-        h2 {
-            margin-top: 20px;
-        }
-        p {
-            color: coral;
-        }
-        form {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            width: 80%;
-            max-width: 600px;
-        }
-        input[type="text"] {
-            width: 100%;
-            padding: 10px;
-            margin: 10px 0;
-            border: 1px solid #ccc;
-            border-radius: 4px;
-        }
-        button {
-            padding: 10px 20px;
-            margin: 10px 0;
-            border: none;
-            background-color: green;
-            color: white;
-            cursor: pointer;
-            border-radius: 4px;
-        }
-        button:hover {
-            background-color: darkgreen;
-        }
-        img {
-            max-width: 100%;
-            height: auto;
-            margin: 10px 0;
-        }
-        .video-details {
-            text-align: left;
-            width: 100%;
-        }
-        .video-details h3 {
-            margin: 10px 0;
-        }
-        .resolution-button {
-            display: inline-block;
-            margin: 5px;
-        }
-    </style>
+    <title>YouTube Downloader</title>
 </head>
 <body>
-    <h2>YT SAVER</h2>
-    <p><b>Save your favorite YouTube videos for free!!</b></p>
-    <form method="post" action="">
-        {% csrf_token %}
-        <input type="text" name="given_url" value="{{url}}" placeholder="Enter URL..">
-        <button type="submit" name="fetch-vid" value="fetch-vid">Proceed</button>
 
-        <div class="video-details">
-            <h3>{{vidTitle}}</h3>
-            <img src="{{vidThumbnail}}" alt="Video Thumbnail">
-        </div>
+<h2>YouTube Video Downloader</h2>
 
-        {% for x in stream %}
-            <div class="resolution-button">
-                {{x.resolution}}
-                <button type="submit" name="download-vid" value="{{forloop.counter}}">Download</button>
-            </div>
+{% if error %}
+<p style="color:red">{{ error }}</p>
+{% endif %}
+
+<!-- VIDEO MA'LUMOTINI OLIB KELISH -->
+<form method="POST">
+    {% csrf_token %}
+    <input type="text" name="given_url" placeholder="YouTube URL kiriting" required>
+    <button type="submit" name="fetch-vid" value="1">Ma'lumotni olish</button>
+</form>
+
+{% if title %}
+<hr>
+<h3>{{ title }}</h3>
+<img src="{{ thumb }}" width="300" alt="thumbnail">
+
+<!-- VIDEO FILTR VA YUKLASH -->
+<form method="POST">
+    {% csrf_token %}
+    <input type="hidden" name="given_url" value="{{ url }}">
+
+    <select name="download-vid">
+        {% for s in streams %}
+            <option value="{{ forloop.counter }}">
+                {{ s.resolution }} | {{ s.mime_type }}
+            </option>
         {% endfor %}
-    </form>
+    </select>
+
+    <button type="submit">Yuklab olish</button>
+</form>
+{% endif %}
+
 </body>
 </html>

@@ -2,39 +2,72 @@ from django.shortcuts import render, redirect
 from django.views import View
 from pytube import YouTube
 from pytube.exceptions import RegexMatchError, VideoUnavailable
+from urllib.error import HTTPError
 
 
 class Home(View):
+    template_name = 'download/index.html'
+
     def get(self, request):
-        return render(request, 'download/index.html')
+        return render(request, self.template_name)
 
     def post(self, request):
-        try:
-            if request.POST.get('fetch-vid'):
-                self.url = request.POST.get('given_url')
-                video = YouTube(self.url)
-                vidTitle, vidThumbnail = video.title, video.thumbnail_url
-                qual, stream = [], []
-                for vid in video.streams.filter(progressive=True):
-                    qual.append(vid.resolution)
-                    stream.append(vid)
-                context = {'vidTitle': vidTitle, 'vidThumbnail': vidThumbnail,
-                           'qual': qual, 'stream': stream,
-                           'url': self.url}
-                return render(request, 'download/index.html', context)
+        url = request.POST.get('given_url')
 
-            elif request.POST.get('download-vid'):
-                self.url = request.POST.get('given_url')
-                video = YouTube(self.url)
-                stream = [x for x in video.streams.filter(progressive=True)]
-                if not stream:
-                    raise ValueError("No progressive streams available for download.")
+        # 1️⃣ Video ma'lumotlarini olish
+        if request.POST.get('fetch-vid') == "1":
+            try:
+                yt = YouTube(
+                    url,
+                    use_oauth=False,
+                    allow_oauth_cache=True
+                )
 
-                video_qual = stream[int(request.POST.get('download-vid')) - 1]
-                video_qual.download(output_path='../../Downloads')
-                return redirect('home')
+                streams = list(yt.streams.filter(progressive=True))
 
-        except (RegexMatchError, VideoUnavailable, ValueError) as e:
-            print(f"Error: {e}")
+                if not streams:
+                    return render(request, self.template_name, {
+                        "error": "Video format topilmadi!"
+                    })
 
-        return render(request, 'download/index.html')
+                context = {
+                    "url": url,
+                    "title": yt.title,
+                    "thumb": yt.thumbnail_url,
+                    "streams": streams,
+                }
+
+                return render(request, self.template_name, context)
+
+            except (RegexMatchError, VideoUnavailable):
+                return render(request, self.template_name, {
+                    "error": "Noto'g'ri URL yoki video mavjud emas!"
+                })
+
+            except HTTPError as e:
+                return render(request, self.template_name, {
+                    "error": f"HTTP Error: {e}"
+                })
+
+            except Exception as e:
+                return render(request, self.template_name, {
+                    "error": f"Xatolik: {e}"
+                })
+
+        # 2️⃣ Video yuklab olish
+        if request.POST.get('download-vid'):
+            try:
+                index = int(request.POST.get('download-vid')) - 1
+                yt = YouTube(url)
+
+                streams = list(yt.streams.filter(progressive=True))
+                streams[index].download(output_path='Downloads')
+
+                return redirect("home")
+
+            except Exception as e:
+                return render(request, self.template_name, {
+                    "error": f"Yuklab olishda xatolik: {e}"
+                })
+
+        return render(request, self.template_name)
